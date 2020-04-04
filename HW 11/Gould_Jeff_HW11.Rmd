@@ -128,35 +128,57 @@ results <- data.frame(
   fin_diff_1 = differences_1,
   fin_diff_2 = differences_2
 )
-
+```
+```{r echo = FALSE,  results='asis'}
 print(xtable::xtable(results, digits = 16), comment = F)
-
-
+```
+```{r  results='asis'}
 result_errors <- data.frame(h = results$h,
                              error_1 = results$fin_diff_1 - 1,
                              error_2 = results$fin_diff_2 - 1)
+```
+```{r echo = FALSE,  results='asis'}
 
 print(xtable::xtable(result_errors, digits = 16), comment = F)
 ```
 
-So we see that our highest accuracy was achieved at `h=1e-06` using the second finite difference method, where we were accurate out to 10 digits. Using the first finite difference method, we were able to achieve eight digits of accuracy at `h=1e-08`.
+So we see that our highest accuracy was achieved at `h=1e-05` using the second finite difference method, where we were accurate out to 10 digits. Using the first finite difference method, we were able to achieve eight digits of accuracy at `h=1e-08`.
 
 Reasons for error:
 
-Magnitude of error is given by $|F_h(x) - f(x)|$. While the numerical formula for $F_h^{(1)}(x) = \frac{f(x+h)-f(x)}{h}$, because of computing restrictions the actual formula we are computing is $F_h^{(1)}(x) = \frac{f(x+h)(1+\epsilon_1)-f(x)(1+\epsilon_2)}{h} = \frac{f(x+h)-f(x)}{h} + \frac{f(x+h)\epsilon_1-f(x)\epsilon_2}{h}$, $|\epsilon_i|<10^{-16}$
+Magnitude of error is given by $|F_h(x) - f(x)|$. While the numerical formula for $F_h(x) = \frac{f(x+h)-f(x)}{h}$, because of computing restrictions the actual formula we are computing is $$F_h^{(1)}(x) = \frac{f(x+h)(1+\epsilon_1)-f(x)(1+\epsilon_2)}{h} = 
+\\
+\frac{f(x+h)-f(x)}{h} + \frac{f(x+h)\epsilon_1-f(x)\epsilon_2}{h} \text{,  } |\epsilon_i|<10^{-16}$$
 
 Here the first term is our Taylor Series error, and the second term is our round off error due to machine limitations.
 
-Now we can re-write $F_h(x) = \frac{[f(x)+f'(x)h+\frac{1}{2}f''(x)h^2]-f(x)}{h} + \frac{C\epsilon_m}{h} = f'(x)+\frac{1}{2}f''(x)h +\frac{C\epsilon_m}{h}$, where $\epsilon_m=10^{-16}$, ie machine epsilon.
+Now we can re-write 
+$$F_h(x) = \frac{[f(x)+f'(x)h+\frac{1}{2}f''(x)h^2]-f(x)}{h} + \frac{C\epsilon_m}{h} = f'(x)+\frac{1}{2}f''(x)h +\frac{C\epsilon_m}{h}$$
+where $\epsilon_m=10^{-16}$, ie machine epsilon.
 
-So our error becomes $|F_h(x)-f'(x)| = |\frac{1}{2}f''(x)h| + \frac{C\epsilon_m}{h}$, take the derivative with respect to $h$ and set equal to 0 to solve for the optimal h to minimize error: $|\frac{1}{2}f''(x)| -\frac{C\epsilon_m}{h^2}=0 \rightarrow h^2 = \frac{C\epsilon_m}{|1/2f''(x)|} \rightarrow h \approx \sqrt{\epsilon_m} = 10^-8$. 
+So our error becomes $|F_h(x)-f'(x)| = |\frac{1}{2}f''(x)h| + \frac{C\epsilon_m}{h}$, take the derivative with respect to $h$ and set equal to 0 to solve for the optimal h to minimize error: 
+$$\left|\frac{1}{2}f''(x)\right| -\frac{C\epsilon_m}{h^2}=0 \rightarrow h^2 = \frac{C\epsilon_m}{|1/2f''(x)|} \rightarrow h \approx \sqrt{\epsilon_m} = 10^-8$$
+And our error comes out to $\text{O}10^{-8}$
 
 So this explains why `h=1e-08` produced the smallest error for our first finite difference equation. To explain some of the output a little further: the reason our output is exactly 0 for `h=1e-16` and smaller is because when we subtract that from $f(x)=1$, the computer is only able to store 16 significant figures, so the extra $1\text{e}-16$ can't be stored, and the computer calculates $\frac{1-1}{10^-16} = 0$.
 
 Looking at our second finite difference equation, we follow the same process but see we are able to reach slightly more accurate results, and with a larger $h$.
 
+\begin{equation}
+\begin{split}
+\tilde{F}_h(x) = \frac{f(x+h)-f(x-h)}{2h} = \frac{f(x+h)(1+\epsilon_1)-f(x-h)(1+\epsilon_2)}{2h} = \\ \frac{f(x+h)-f(x-h)}{2h} + \frac{f(x+h)\epsilon_1-f(x-h)\epsilon_2}{2h} 
+\end{split}
+\end{equation}
 
+Using Taylor Series expansion, the difference in the numerator of the first term becomes:
 
+$f(x) + f'(x)h + \frac{1}{2}f''(x)h^2 + \frac{1}{6}h^3 - (f(x) - f'(x)h + \frac{1}{2}f''(x)h^2 - \frac{1}{6}h^3) = 2hf'(x) + 1/3f'''(x_h^3)$
+
+and this gives:
+
+$\tilde{F}_h(x) = f'(x)+\frac{1}{6}f'''(x)h^2+\frac{C\epsilon_m}{h}$
+$|\tilde{F}_h(x) - f'(x)| = \left|\frac{1}{6}f'''(x)h^2+\frac{C\epsilon_m}{h}\right|$
+Take the derivative and set equal to 0: $\frac{2}{6}f'''(x)h - \frac{C\epsilon_m}{h^2}=0 \rightarrow h^3 = \frac{3C\epsilon_m}{f'''(x)}\approx (\epsilon_m)^{1/3} = 10^{-16/3}$, which means our error comes out to $\text{O}10^{-32/3}$, which is nearly 100 times more accurate than the first equation.
 
 
 ## 4
