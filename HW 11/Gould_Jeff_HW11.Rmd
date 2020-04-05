@@ -33,9 +33,34 @@ where as mentioned $\alpha$ is the vector of $\alpha_j$'s, and each $B_{kl} = h_
 $$S(x) = \bigg\{
 \begin{array}{cc}
 S_0(x) & \text{if } x < \xi_1 \\
-S_1(x) & \text{if } x \in [\xi_1,\xi_2) \\
+S_1(x) & \text{if } x \in [\xi_1,\xi_2) \Rightarrow \\
 S_2(x) & \text{if } x \ge \xi_2,
-\end{array} = \alpha_0 +\alpha_1 x + \alpha_2 x^2 + _3 x^3$$
+\end{array}$$
+
+$$S(x) = \bigg\{
+\begin{array}{cc}
+a_1 + b_1x + c_1 x^2 + d_1 x^3 & \text{if } x < 15 \\
+a_2 + b_2 x + c_2 x^2 + d_2 x^3  & \text{if } x \in [15,20) \\
+a_3 + b_3 x + c_3 x^2 + d_3 x^3  & \text{if } x \ge 20,
+\end{array}$$
+
+with the constraints of: $S_0(15) = S_1(15)\text{, }S_0'(15) = S_1'(15)\text{, }S_0''(15) = S_1''(15)$ and $S_1(15) = S_2(15)\text{, }S_1'(15) = S_2'(15)\text{, }S_1''(15) = S_2''(15)$, and let $v = (a_1, b_1, c_1, d_1, a_2, \dots, d_3)$.
+
+So we have 6 constraints, and 12 parameters ($v$). 
+
+To satisfy the first constraint, $S_0(15) = S_1(15)$, then $a_1 + b_1 \cdot 15 + c_1 \cdot 15^2 + d_1 \cdot 15^3 = a_2 + b_2 \cdot 15 + c_2 \cdot 15^2 + d_2 \cdot 15^3 \rightarrow a_1 + b_1 \cdot 15 + c_1 \cdot 15^2 + d_1 \cdot 15^3 - (a_2 + b_2 \cdot 15 + c_2 \cdot 15^2 + d_2 \cdot 15^3) = 0$
+
+This can also be expressed as $v \cdot w^{(1)} = 0$, where $w^{(1)} = (1,15,15^2,15^3, -1,-15,-15^2,-15^3,0,0,0,0)$.
+Similarly for each contraint, we can express each as a $v \cdot w^{(i)} =0$ for $i = 1,2,3,4,5,6$.
+
+For example, $S_1'(20)=S_2'(20) \rightarrow v \cdot w^{(5)} = 0$, where $w^{(5)} = (0,0,0,0,0,1,2 \cdot15, 3\cdot15^2, 0, -1, -2\cdot 15, -3 \cdot 15^2$
+
+Now let $A$ be a $6\times 12$ matrix where each row  $i$is $w^{(i)}$. Then $v$ encodes a cubic spline with knots at 15 and 20 satisfying the above conditions iff $Av=0$, that is $v \in \text{null}(A) \rightarrow \dim(v) = \dim(\text{null}(A))$. 
+
+Suppose $v^{(1)},v^{(2)}, \dots,v^{(D)}$ form a basis for $\text{null}(A)$, then each $v^{(i)}$ encodes a spline $h_{(i)}(x)$. Since $S(x)$ above is a spline in $\mathcal{F}$, then it is encoded by a $v \in \text{null}(A)$.
+Since the $v^{(j)}$ form a basis for $\text{null}(A)$, we have $v = \sum_{=1}^D \alpha_jv^{(j)}$.
+
+But we've already shown that $S(x) = \sum_{i=1}^{12}\alpha_ih_i(x)$, therefore our $h_i(x)$ also form a basis for $\text{null}(A)$. Since $A$ is a $6\times12$ matrix, it's nullspace has dimension $12-6=6$, and therefore our spline space also has dimension 6.
 
 
 ### c
@@ -177,7 +202,9 @@ $f(x) + f'(x)h + \frac{1}{2}f''(x)h^2 + \frac{1}{6}h^3 - (f(x) - f'(x)h + \frac{
 and this gives:
 
 $\tilde{F}_h(x) = f'(x)+\frac{1}{6}f'''(x)h^2+\frac{C\epsilon_m}{h}$
+
 $|\tilde{F}_h(x) - f'(x)| = \left|\frac{1}{6}f'''(x)h^2+\frac{C\epsilon_m}{h}\right|$
+
 Take the derivative and set equal to 0: $\frac{2}{6}f'''(x)h - \frac{C\epsilon_m}{h^2}=0 \rightarrow h^3 = \frac{3C\epsilon_m}{f'''(x)}\approx (\epsilon_m)^{1/3} = 10^{-16/3}$, which means our error comes out to $\text{O}10^{-32/3}$, which is nearly 100 times more accurate than the first equation.
 
 
