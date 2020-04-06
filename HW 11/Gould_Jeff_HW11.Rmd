@@ -65,6 +65,93 @@ But we've already shown that $S(x) = \sum_{i=1}^{12}\alpha_ih_i(x)$, therefore o
 
 ### c
 
+#### i
+
+From above, we easily see that $h_1(x)$ is simply a spline with $a_1 = a_2 = a_3 = 1$ and $b_1,b_2,\dots d_3 = 0$.
+$h_2(x)$ is a spline with parameters $b_i = 1$, and $a_i=c_i=d_i=0$, $i=1,2,3$, and similarly for $h_3(x)$ and $h_4(x)$. We easily see that $h_i(x)$'s are cubic polynomials over $(-\infty,\zeta_1], (\zeta_1,\zeta_2], (\zeta_2,\infty)$, $i=1,2,3,4$
+
+Now $h_5(x) = [x-\zeta_1]_+^3$. For $h_5(x)$ to be a cubic spline with knots at 15 and 20, it must be a polynomial of at most degree 3, and it must satisfy the three continuity conditions at $x=15,20$. 
+
+$h_5(x) = 0$ if $x \leq 15$, and $h_5(x) = (x-15)^3$ if $x > 15$. So $x$ is clearly a polynomial of degree 3 when $x>15$, and a constant when $x\leq 15$, so our first condition is satisfied. Now we need to show the continuity conditions hold at 15 and 20. At $x=20$, since $h$ is a polynomial of degree 3, it is clear that the continuities hold for $h(x)$ and the first two derivatives. 
+
+At $x=15$, $h(x)=h'(x)=h''(x)=0$. Also:
+
+$\lim_{x\rightarrow 15^+}h(x) = \lim_{x\rightarrow 15^+}(x-15)^3 = 0$
+
+$\lim_{x\rightarrow 15^+}h'(x) = \lim_{x\rightarrow 15^+}3(x-15)^2 = 0$
+
+$\lim_{x\rightarrow 15^+}h''(x) = \lim_{x\rightarrow 15^+}6(x-15) = 0$
+
+Thus, our continuity conditions hold at $x=15$, so $h_5(x)$ fulfills all the conditions to be a cubic spline with knots at $\zeta = (15,20)$.
+
+Similarly, $h_6(x) = 0$ at $x=15$, so all ocnditions are easily met there. At $x=20$, we have $h_6(x) = h_6'(x) = h_6''(x) = 0$, and the limits from the RHS:
+
+
+$\lim_{x\rightarrow 20^+}h_6(x) = \lim_{x\rightarrow 20^+}(x-20)^3 = 0$
+
+$\lim_{x\rightarrow 20^+}h_6'(x) = \lim_{x\rightarrow 20^+}3(x-20)^2 = 0$
+
+$\lim_{x\rightarrow 20^+}h_6''(x) = \lim_{x\rightarrow 20^+}6(x-20) = 0$
+
+So all of our continuity conditions are met, and thus $h_6(x)$ is a cubic spline satidfying conditions for $\zeta = (15,20)$
+
+#### ii
+
+Suppose $\exists \alpha$ such that $\sum_{i=1}^6\alpha_i h_i(x) = 0 \forall x$
+
+Then we can pick any x and get $\alpha_1h_1(x) + \alpha_2 h_2(x) + \alpha_3 h_3(x) + \alpha_4 h_4(x) + \alpha_5 h_5(x) + \alpha_6 h_6(x) = 0$. Ie, let $x=5$, then we get $\alpha_1h_1(5) + \alpha_2 h_2(5) + \alpha_3 h_3(5) + \alpha_4 h_4(5) + \alpha_5 h_5(5) + \alpha_6 h_6(5) = \alpha_1 + 5 \alpha_2 + 25 \alpha_3 + 125 \alpha_4 + 0 \alpha_5 + 0 \alpha_6 = 0$. We can repeat this process 5 more times, giving us 6 constraints on our $\alpha$. Make a matrix $A$, with 6 rows, where each row is coefficients of $\alpha$ for an as exampled above. If we can make a linear combination $h_i(x)$, then we would get $A \alpha = 0$. However, if $A$ is invertible, then we get $A^{-1}A\alpha = 0 \rightarrow \alpha = A^{-1}0\rightarrow \alpha = 0$. This would be a contradiction, as we said that $h_i(x)$'s formed a non-arbitray linear combination equal to 0, thus they are linearly independent. 
+
+Note: we must x values greater than 15 and greater than 20, otherwise we will not have enough constraints and we will be able to have linear combinations equal to 0 over a limited domain of $x$'s
+
+```{r results = 'asis'}
+A = matrix(0, nrow = 6, ncol = 6)
+
+x_tests <- c(10, 14, 16, 19,21, 25)
+
+for (i in 1:6) {
+  
+  x <- x_tests[i]
+  A[i,] <- c(1, x, x^2, x^3,
+             ifelse(x < 15, 0, (x-15)^3),
+             ifelse(x < 20, 0, (x-20)^3)
+  )
+}
+rownames(A) <- paste("x", x_tests, sep="=")
+print(xtable::xtable(A), comment = F)
+
+det(A)
+```
+
+Since the $\det(A) \neq 0$, then A is an invertible matrix thus $\alpha = 0$, and we do not have a linear combination of $h_i(x)=0$, so $h_i(x)$ are linearly independent.
+
+Code + results to show why we need to include x values on both sides of the knots:
+
+```{r results = 'asis'}
+A = matrix(0, nrow = 6, ncol = 6)
+
+x_tests <- c(1,5,2,8,10,14)
+
+for (i in 1:6) {
+  
+  x <- x_tests[i]
+  A[i,] <- c(1, x, x^2, x^3,
+             ifelse(x < 15, 0, (x-15)^3),
+             ifelse(x < 20, 0, (x-20)^3)
+  )
+}
+rownames(A) <- paste("x", x_tests, sep="=")
+print(xtable::xtable(A), comment = F)
+
+det(A)
+```
+
+If we dont have x values on both sides of the knots, then we can will get a result such that $\det(A) = 0$, and be falsely led to believe we had linearly dependent $h_i(x)$, but that is because we did not have constraints for all 6 functions.
+
+#### iii) Show each spline is a linear combination the 6 functions
+
+Since in **i** we showed that the dimension of $\mathcal{F} = 6$, and in **ii** we showed that the 6 $h_i(x)$'s are linearly independent, then $h_i(x)$'s form a basis for $\mathcal{F}$. Since the spline $S(x) \in \mathcal{F}$, $S(x) = \alpha_1 h_1(x) + \alpha_2 h_2(x) + \alpha_3 h_3(x) + \alpha_4 h_4(x) + \alpha_5 h_5(x) + \alpha_6 h_6(x)$ for some $\alpha$, that is $S(x)$ is a linear combination of $h_1(x), h_2(x), h_3(x), h_4(x), h_5(x), h_6(x)$.
+
+
 ### d
 ```{r results='asis', message=FALSE}
 bone_mass <- read_delim("BoneMassData.txt", delim = " ")
@@ -169,7 +256,7 @@ print(xtable::xtable(result_errors, digits = 16), comment = F)
 
 So we see that our highest accuracy was achieved at `h=1e-05` using the second finite difference method, where we were accurate out to 10 digits. Using the first finite difference method, we were able to achieve eight digits of accuracy at `h=1e-08`.
 
-Reasons for error:
+**Reasons for error:**
 
 Magnitude of error is given by $|F_h(x) - f(x)|$. While the numerical formula for $F_h(x) = \frac{f(x+h)-f(x)}{h}$, because of computing restrictions the actual formula we are computing is $$F_h^{(1)}(x) = \frac{f(x+h)(1+\epsilon_1)-f(x)(1+\epsilon_2)}{h} = 
 \\
@@ -185,7 +272,7 @@ So our error becomes $|F_h(x)-f'(x)| = |\frac{1}{2}f''(x)h| + \frac{C\epsilon_m}
 $$\left|\frac{1}{2}f''(x)\right| -\frac{C\epsilon_m}{h^2}=0 \rightarrow h^2 = \frac{C\epsilon_m}{|1/2f''(x)|} \rightarrow h \approx \sqrt{\epsilon_m} = 10^-8$$
 And our error comes out to $\text{O}10^{-8}$
 
-So this explains why `h=1e-08` produced the smallest error for our first finite difference equation. To explain some of the output a little further: the reason our output is exactly 0 for `h=1e-16` and smaller is because when we subtract that from $f(x)=1$, the computer is only able to store 16 significant figures, so the extra $1\text{e}-16$ can't be stored, and the computer calculates $\frac{1-1}{10^-16} = 0$.
+So this explains why `h=1e-08` produced the smallest error for our first finite difference equation. To explain some of the output a little further: the reason our output is exactly 0 for `h=1e-16` and smaller is because when we subtract that from $f(x)=1$, the computer is only able to store 16 significant figures, so the extra $1\text{e}-16$ can't be stored, and the computer is actually calculating $\frac{1-1}{10^{-16}} = 0$.
 
 Looking at our second finite difference equation, we follow the same process but see we are able to reach slightly more accurate results, and with a larger $h$.
 
@@ -219,10 +306,6 @@ norm_cdf <- function(z){1 / (sqrt(2 * pi)) * exp(-z^2 / 2)}
 integrate(norm_cdf, 0, 7.5, subdivisions = 100)
 
 Fapprox <- function(n, method = "reimann", upperlimit = 7.5){
-  `%notin%` = Negate(`%in%`)
-  if(method %notin% c("reimann", "trapezoid", "useR")){
-    return("Please enter a valid integration method")
-  }
   
   h <- upperlimit / n
   
@@ -246,11 +329,13 @@ Fapprox <- function(n, method = "reimann", upperlimit = 7.5){
   }else if(method == "trapezoid"){
     cuts <- seq(0, upperlimit, h)
     norm_cdf <- sum(sapply(cuts[-n], trapezoid))
-  }else{
+  }else if(method == "useR"){
     norm_cdf_func <- function(z){1 / (sqrt(2 * pi)) * exp(-z^2 / 2)}
     norm_cdf <- integrate(norm_cdf_func, 0, 
                           upperlimit, 
                           subdivisions = n)$value
+  }else{
+    return("Please enter a valid integration method.")
   }
   return(norm_cdf)
   
@@ -269,5 +354,5 @@ print(xtable::xtable(evaluations, digits = 16), comment = F)
 
 ```
 
-Looking at the table of our results, we see that the `rectangle` method consistently overestimates the probability by a good amount, only reaching 3 digits of accuracy after we bump `n` to 10000. This is what we would expect as the normal curve is a decreasing function so we would consistently be adding additional area at each step. The trapezoid method is much more accurate, achieving 10 digits of accuracy at nust `n=10`, and almost reaching the same accuracy as `R` at `n=10000`. The accuracy of `R`'s built in integral function did not change with varying values of `n`.
+Looking at the table of our results, we see that the `rectangle` method consistently overestimates the probability by a good amount, only reaching 3 digits of accuracy after we bump `n` to 10000. This is what we would expect as the normal curve is a decreasing function so we would consistently be adding additional area at each step. The trapezoid method is much more accurate, achieving 10 digits of accuracy at nust `n=10`, and almost reaching the same accuracy as `R` at `n=10000`. Since the normal distribution is concave within the first standard deviation ($|z| < 1$), the trapezoid method will underestimate the area. But the normal distribution is convex beyond the first standard deviation ($|z| > 1$), so the trapezoid method will overestimate the area in the tail. The over/under estimations largely cancel out in our calculation, but since there is more area within the first standard deviation we still end up slightly underestimating the cdf. The accuracy of `R`'s built in integral function did not change with varying values of `n`.
 
