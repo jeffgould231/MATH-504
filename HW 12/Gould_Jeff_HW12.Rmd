@@ -127,7 +127,84 @@ ggplot(data = spline_test, aes(x = x)) +
 So we see that using too small of a $\rho$ (blue-ish purple line) causes the regression to be overfit, with the regression line oscillating heavily in small intervals. A spline with a modest penalty of $\rho = 1$ (magenta line), causes the spline regression to look similar to the one computed with two knots on our previous HW. It has a higher rise with the spike in data around ages 11-13 than a higher penalty, but it doesn't have heavy swings the way a lower penalty did. Meanwhile a highly penalized regression with $\rho = 100$ (yellow line), the regression had smaller moves with the data, and perhaps penalized too much. It seems to have too small of a rise with the data from 11-13, and then too slow to drop with the data after age 15.
 
 
+# 3
 
+## a
+
+`signal.R`:
+```{r }
+set.seed(1236)
+
+# the "signal" that make up the rows of our matrix, with noise added.
+sig <- seq(1,2,length.out = 10) 
+sig[5] <- -1
+
+
+# each row of A will have the form: q*signal + noise
+nsamples <- 500
+A <- matrix(NA, ncol=10, nrow=nsamples)
+no_noise_A <- matrix(NA, ncol=10, nrow=nsamples)
+q <- runif(nsamples, min=-3, max=3)
+for (i in 1:nsamples) {
+  noise <- rnorm(10, mean=0, sd=5)
+  A[i,] <- q[i]*sig + noise
+  no_noise_A[i,] <- q[i]*sig
+}
+
+write.table(no_noise_A, file="no_noise_A.txt", row.names = F, col.names = F)
+write.table(A, file="A.txt", row.names = F, col.names = F)
+write.table(q, file="q.txt", row.names=F, col.names=F)
+
+image(A)
+```
+
+
+```{r }
+plot_data <- data.frame(
+  column = seq(1,10,1),
+  A = A[1,],
+  no_noise = no_noise_A[1,],
+  signal = sig
+) %>%
+  pivot_longer(cols = 2:4, names_to = "Source", values_to = "val")
+
+
+ggplot(data = plot_data, aes(x = column, y = val)) +
+  geom_point(aes(col = Source), size = 2.25) +
+  geom_line(aes(col = Source), size = .125) +
+  scale_x_continuous(breaks = seq(1,10,1), minor_breaks = NULL) +
+  theme_bw()
+
+
+```
+
+You can't derive the signal just using one observation of $A$ and `no_noise_A`, as at a single row observation level the noise is too strong and causes A to not follow a tight enough window to derive the noise. As the first row of `no_noise_A` is derived from multiplying $q_1 = -1.911$ times the signal, we would expect to be able to derive the signal by dividing the first row by $-1.911$, but doing so with $A$ does not give a result remniscient of our signal:
+
+`r A[1,] / -1.911`
+
+Can we find the signal in $A$ using the column means though?
+
+```{r }
+col_means_A <- colMeans(A)
+col_no_noise_A <- colMeans(no_noise_A)
+plot_data_2 <- data.frame(
+  column = seq(1,10,1),
+  A_means = col_means_A,
+  no_noise_means = col_no_noise_A,
+  signal = sig
+) %>%
+  pivot_longer(cols = 2:4, names_to = "Source", values_to = "val")
+
+ggplot(data = plot_data_2, aes(x = column, y = val)) +
+  geom_point(aes(col = Source), size = 2.25) +
+  geom_line(aes(col = Source), size = .125) +
+  scale_x_continuous(breaks = seq(1,10,1), minor_breaks = NULL) +
+  theme_bw()
+
+
+
+```
+By taking the column means we can see the muted signal in `no_noise_A`, however the signal in $A$ is still suppressed by the random noise added to the matrix generation.
 
 
 
