@@ -61,16 +61,7 @@ mygrid <- seq(min_x, max_x, h)
 B <- splineDesign(knots = myknots, x = females$age, outer.ok = T)
 Bpp <- splineDesign(knots = myknots, x = mygrid, derivs = 2, outer.ok = T)
 
-Omega <- matrix(0, nrow = K-4, ncol  = K-4)
-
-test <- sum(Bpp[,10] * Bpp[,15] * h)
-
-for(i in 1:(K-4)){
-  for(j in 1:(K-4)){
-    Omega[i,j] = sum(Bpp[,i] * Bpp[, j] * h)
-  }
-}
-
+Omega <- t(Bpp) %*% Bpp * h
 
 ```
 
@@ -83,7 +74,7 @@ det(t(B) %*% B) == 0
 ```
 
 To show that $B^TB + \rho \Omega$ is invertible, first show that $\Omega$ is invertible. `det(Omega) =` `r det(Omega)`.
-The matrix determinant lemma ([reference](https://en.wikipedia.org/wiki/Matrix_determinant_lemma)) states that if $A$ is an $n \times n$ invertible matrix, and $U$ and $V$ are $n \times m$ matrices, the $\det(A + UV^T) = \det(I_m +V^TA^{-1}U)\det(A)$. Applying to our data, we get $\det(\Omega + B^TB) = \det(I_{259} + B\Omega^{-1}B^T)\det(\Omega) \rightarrow \det(\rho\Omega + B^TB) = \det(I_{259} + B\rho^{-1}\Omega^{-1}B^T)\det(\rho\Omega)$. Since we know that $\det(\Omega)$ is very large (`R` outputs it as $\infty$), we simply need to show that $\det(I_{259} + B\Omega^{-1}B^T) \neq 0$:
+The matrix determinant lemma ([wiki](https://en.wikipedia.org/wiki/Matrix_determinant_lemma)) states that if $A$ is an $n \times n$ invertible matrix, and $U$ and $V$ are $n \times m$ matrices, the $\det(A + UV^T) = \det(I_m +V^TA^{-1}U)\det(A)$. Applying to our data, we get $\det(\Omega + B^TB) = \det(I_{259} + B\Omega^{-1}B^T)\det(\Omega) \rightarrow \det(\rho\Omega + B^TB) = \det(I_{259} + B\rho^{-1}\Omega^{-1}B^T)\det(\rho\Omega)$. Since we know that $\det(\Omega)$ is very large (`R` outputs it as $\infty$), we simply need to show that $\det(I_{259} + B\Omega^{-1}B^T) \neq 0$:
 
 
 
