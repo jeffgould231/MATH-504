@@ -1,7 +1,7 @@
 ---
 title: "Math 504 HW12"
 author: "Jeff Gould"
-date: "4/9/2020"
+date: "4/14/2020"
 output: pdf_document
 ---
 
@@ -23,13 +23,13 @@ library(viridis)
 Fromn$\sum_{j=1}^{K-4} \alpha_j b_j(x_i)$, we have $N \times K-4$ values from $b_j(x_i)$. Let each $b_j(x_i)$ be the $ij^{th}$ entry in the matrix $B$
 
 Also, we can expand $\sum_{j=1}^{K-4} \alpha_j b_j(x_i)$ as $\alpha_1 b_1(x_i) + \alpha_2 b_2(x_i) + \dots + \alpha_{K-4} b_{K-4}(x_i) = S(x_i)$. Thus, we can re-write $$\sum_{i=1}^N |y_i - \sum_{j=1}^{K-4} \alpha_j b_j(x_i)|^2 = \sum_{i=1}^N |y_i - S(x_i)|^2 = ||y-B\alpha||^2$$
-where $B$ is the $N \times K-4$ matrix as described above and $\alpha$ is $K-4$ column vector.
+where $B$ is the $N \times K-4$ matrix as described above and $\alpha$ is $K-4$ column vector of the coefficients in $S(x)$.
 
 Next, look at $\rho \int_{x_{\text{min}}}^{x_{\text{max}}} \left(( \sum_{j=1}^{K-4} \alpha_j b_j(z))''\right)^2 dz$.
 Since $\rho$ is a constant, we can ignore it for now. This leaves
 $$\int_{x_{\text{min}}}^{x_{\text{max}}} \left(( \sum_{j=1}^{K-4} \alpha_j b_j''(z))\right)^2 dz = \int_{x_{\text{min}}}^{x_{\text{max}}} \left(\left( \sum_{j=1}^{K-4} \alpha_j b_j''(z)\right)\left( \sum_{i=1}^{K-4} \alpha_i b_i''(z)\right)\right)dz =$$
 $$\int_{x_{\text{min}}}^{x_{\text{max}}}\sum_{j=1}^{K-4}\sum_{i=1}^{K-4}\alpha_j \alpha_i b_j''(z) b_i''(z)dz = \sum_{j=1}^{K-4}\sum_{i=1}^{K-4}\alpha_j \alpha_i\left( \int_{x_{\text{min}}}^{x_{\text{max}}} b_j''(z) b_i''(z)dz \right)$$
-Now define a $K-4$ square matrix $\Omega$ such that each $ji^{th}$ corresponds to $\int_{x_{\text{min}}}^{x_{\text{max}}} b_j''(z) b_i''(z)dz$. Then:
+Now define a $K-4$ square matrix $\Omega$ such that each $ji^{th}$ entry corresponds to $\int_{x_{\text{min}}}^{x_{\text{max}}} b_j''(z) b_i''(z)dz$. Then:
 $$\sum_{j=1}^{K-4}\sum_{i=1}^{K-4}\alpha_j \alpha_i\left( \int_{x_{\text{min}}}^{x_{\text{max}}} b_j''(z) b_i''(z)dz \right) = \sum_{j=1}^{K-4}\sum_{i=1}^{K-4}\alpha_j \alpha_i \Omega_{ji} = \alpha^T \Omega \alpha$$
 
 Putting this together, we get 
@@ -65,6 +65,7 @@ Omega <- t(Bpp) %*% Bpp * h
 
 ```
 
+Note that $Bpp^TBpp *h$ is equivalent to $\sum_{i=1}^Mb_k''(z_i)b_l''(z_i)\Delta z$, where $h = \Delta z$
 
 ## c
 Show that $B^TB$ is not invertible - simply show $\det B^TB = 0$:
@@ -74,7 +75,7 @@ det(t(B) %*% B) == 0
 ```
 
 To show that $B^TB + \rho \Omega$ is invertible, first show that $\Omega$ is invertible. `det(Omega) =` `r det(Omega)`.
-The matrix determinant lemma ([wiki](https://en.wikipedia.org/wiki/Matrix_determinant_lemma)) states that if $A$ is an $n \times n$ invertible matrix, and $U$ and $V$ are $n \times m$ matrices, the $\det(A + UV^T) = \det(I_m +V^TA^{-1}U)\det(A)$. Applying to our data, we get $\det(\Omega + B^TB) = \det(I_{259} + B\Omega^{-1}B^T)\det(\Omega) \rightarrow \det(\rho\Omega + B^TB) = \det(I_{259} + B\rho^{-1}\Omega^{-1}B^T)\det(\rho\Omega)$. Since we know that $\det(\Omega)$ is very large (`R` outputs it as $\infty$), we simply need to show that $\det(I_{259} + B\Omega^{-1}B^T) \neq 0$:
+The matrix determinant lemma ([link](https://en.wikipedia.org/wiki/Matrix_determinant_lemma)) states that if $A$ is an $n \times n$ invertible matrix, and $U$ and $V$ are $n \times m$ matrices, the $\det(A + UV^T) = \det(I_m +V^TA^{-1}U)\det(A)$. Applying to our data, we get $\det(\Omega + B^TB) = \det(I_{259} + B\Omega^{-1}B^T)\det(\Omega) \rightarrow \det(\rho\Omega + B^TB) = \det(I_{259} + B\rho^{-1}\Omega^{-1}B^T)\det(\rho\Omega)$. Since we know that $\det(\Omega)$ is very large (`R` outputs it as $\infty$), we simply need to show that $\det(I_{259} + B\Omega^{-1}B^T) \neq 0$:
 
 
 
@@ -120,7 +121,7 @@ ggplot(data = spline_test, aes(x = x)) +
 
 ```
 
-So we see that using too small of a $\rho$ (blue-ish purple line) causes the regression to be overfit, with the regression line oscillating heavily in small intervals. A spline with a modest penalty of $\rho = 1$ (magenta line), causes the spline regression to look similar to the one computed with two knots on our previous HW. It has a higher rise with the spike in data around ages 11-13 than a higher penalty, but it doesn't have heavy swings the way a lower penalty did. Meanwhile a highly penalized regression with $\rho = 100$ (yellow line), the regression had smaller moves with the data, and perhaps penalized too much. It seems to have too small of a rise with the data from 11-13, and then too slow to drop with the data after age 15.
+So we see that using too small of a $\rho$ (indigo line) causes the regression to be overfit, with the regression line oscillating heavily in small intervals. A spline with a modest penalty of $\rho = 1$ (magenta line), causes the spline regression to look similar to the one computed with two knots on our previous HW. It has a higher rise with the spike in data around ages 11-13 than a higher penalty, but it doesn't have heavy swings the way a lower penalty did. Meanwhile a highly penalized regression with $\rho = 100$ (yellow line), the regression had smaller moves with the data, and perhaps penalized too much. It seems to have too small of a rise with the data from 11-13, and then too slow to drop with the data after age 15.
 
 
 # 3
@@ -147,9 +148,9 @@ for (i in 1:nsamples) {
   no_noise_A[i,] <- q[i]*sig
 }
 
-write.table(no_noise_A, file="no_noise_A.txt", row.names = F, col.names = F)
-write.table(A, file="A.txt", row.names = F, col.names = F)
-write.table(q, file="q.txt", row.names=F, col.names=F)
+# write.table(no_noise_A, file="no_noise_A.txt", row.names = F, col.names = F)
+# write.table(A, file="A.txt", row.names = F, col.names = F)
+# write.table(q, file="q.txt", row.names=F, col.names=F)
 
 image(A)
 ```
@@ -200,11 +201,12 @@ ggplot(data = plot_data_2, aes(x = column, y = val)) +
 
 
 ```
-By taking the column means we can see the muted signal in `no_noise_A`, however the signal in $A$ is still suppressed by the random noise added to the matrix generation.
+
+By taking the column means we can see a very muted signal in `no_noise_A`, however the signal in $A$ is still completely suppressed by the random noise added to the matrix generation.
 
 ## b
 
-While Singular Value Decomposition says an $m \times n$ matrix $A$, $m > n$ can be expressed as $A = USV^T$, where $U$ is an $m \times m$ matrix composed of the eigenvectors of $AA^T$, when using `R`'s `svd` function, it returns $U$ as an $m \times n$ matrix. This is because the eigenvalues beyond the $n^{th}$ eigenvector are pretty much 0, so the added information from the corresponding eigenvectors is minimal, and we can instead shorten our SVD to $A \approx U'SV^T$, where $U'$ is the $m \times n$ matrix generated by `R`'s `svd` function. Additinally, $S$ dfnow becomes an $n \times n$ diagonal matrix instead of an $m \times n$ diagonal matrix.
+While Singular Value Decomposition says an $m \times n$ matrix $A$, $m > n$ can be expressed as $A = USV^T$, where $U$ is an $m \times m$ matrix composed of the eigenvectors of $AA^T$, when using `R`'s `svd` function, it returns $U$ as an $m \times n$ matrix. This is because the eigenvalues beyond the $n^{th}$ eigenvector are $\approx$ 0, so the added information from the corresponding eigenvectors is minimal, and we can instead shorten our SVD to $A \approx U'SV^T$, where $U'$ is the $m \times n$ matrix generated by `R`'s `svd` function. Additinally, $S$ now becomes an $n \times n$ diagonal matrix instead of an $m \times n$ diagonal matrix.
 
 ```{r fig.height = 3.5, fig.width = 5.5 }
 
