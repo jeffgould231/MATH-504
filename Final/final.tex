@@ -1,0 +1,119 @@
+%tex
+
+%\magnification=\magstep2
+
+
+\documentclass[11pt]{article}
+%\setlength{\oddsidemargin}{0in}
+%\setlength{\topmargin}{0in}
+%\setlength{\headheight}{0cm}
+%\setlength{\textwidth}{6in}
+%\setlength{\textheight}{9in}
+\usepackage[left=1in,top=1in,right=1in,foot=.5in,nohead]{geometry} 
+\usepackage{courier}
+\usepackage{amssymb, amsmath, amsthm, verbatim, graphicx}
+
+\begin{document}
+
+\large
+\begin{center}
+Final \\
+MATH 504
+\end{center}
+
+
+\normalsize
+
+\begin{enumerate}
+\item The genome of SARS-COV-2, a.k.a covid-19, is roughly 30,000 nucleotides long, meaning that it is a sequence of 30,000 A,C,G, and T's.    Samples of genomes sequences from patients are being posted to NCBI (the bioinformatics wing of NIH).   I downloaded $241$ sequences on which this problem will be based.   Attached you will find $4$ files.  All of the files are in csv format and do not have a header row.
+\begin{itemize}
+\item  \verb+matrix_sequences.csv+ contains a matrix with $241$ rows and $29903$ columns.   Each row of the matrix is a SARS-COV-2 sequence pulled from a patient.  
+\item  \verb+matrix_countries.csv+ contains a matrix with $241$ rows and $1$ column.  Each row is the country of origin for the corresponding sequence in \verb+matrix_sequences.csv+.  
+\item \verb+matrix_reference.csv+ contains a matrix with $1$ row and $29903$ columns.  This is the so-called SARS-COV-2 reference sequence.  It has been selected by the W.H.O. as the sequence to use as a reference from which to compare other sequences.  
+\item \verb+ncbi_sequences_cleaned.fasta+ is a text file that contains the sequenes in a format that is easier to look at.  Each sequence is shown as a string of A,C,G,T preceded by a header line.   This file is not part of this problem, but I'm including it in case you want to see the sequences in a more convenient format than a matrix.
+
+\vspace{.2cm}
+
+(Biological Note:   I altered the data to make all the sequences align to 29903 columns.   In the process some important variation was lost, in particular insertions and deletions.)
+
+\end{itemize}
+
+Convert the matrix in \verb+matrix_sequences.csv+ to a matrix of $0$'s and $1$'s by comparing each sequence to the reference.   If a sequence has the same letter at a given position as the reference, set the matrix entry to $1$, otherwise set it to $0$.   Perform 2-d PCA on the resultant $0,1$ matrix.   (Don't forget to center!).  The covariance matrix will be $29903$ by $29903$.  \textbf{That's too big to use \textbf{eigen} and too big to form in reasonable space and time!}  Instead, apply a power iteration approach and compute $X^TXv$ for a vector $v$ without forming $X^TX$.  Determine the fraction of the variance captured by the 2-d PCA.  (Hint:  You don't need all the eigenvalues of the covariance matrix to know the total variance.)   Plot the projection of the sequences and color the points according to the country.  Comment on the implications for how the virus spread.
+%\item The disadvantage of our approach in (a) is that we lose variation.  For example, if sequence 1 and sequence 2 differ from the reference at postion 1234 with a C and T, respectively, then both will have a $1$ in the 1234 column of the $0-1$ matrix constructed in part (a), thereby hiding the difference between the two viruses.  Multidimensional scaling (MDS) is a dimension reduction method that addresses this issue.  As in (a), we will reduce to $2$ dimensions.   In MDS, we select $241$ points $z^{(1)}, z^{(2)}, \dots, z^{(241)}$ in $\mathbb{R}^2$ that recover as closely as possible the pairwise distance between the $241$ sequences in \verb+matrix_sequences.csv+, (the reference is not used).  Define, $d_{ij}$, the distance between sequence $i$ and $j$, as follows:
+%\begin{align}
+%d_{ij} = \text{number of positions at which sequence i and j have different values}.
+%\end{align}
+%Then MDS chooses $z^{(1)}, z^{(2)}, \dots, z^{(241)}$ by minimizing the following error function,
+%\begin{equation}
+%L(z^{(1)}, z^{(2)}, \dots, z^{(241)}) = \sum_{i=1}^{241} \sum_{j=1, i \ne j}^{241}
+%\left(d_{ij} - \|z^{(i)} - z^{(j)}\|^2\right)^2
+%\end{equation}
+%There is no analtyic solution to this minimization.  It must be computed by iterative optimization.
+%
+%\textbf{To make things simpler, choose a subset of $20$ points and perform MDS restricted to those points rather than over all $241$}.  Try to choose points which are relatively separated in your PCA, but include a few points that are relatively close to each other.   Note the similarity between this problem and the molecular configuration problem of hw $8$.  
+
+%\vspace{.3cm}
+%
+%(This particular MDS is called least squares MDS and contrast to classical MDS.  See section $14.8$ in Elements of Statistical Learning for a further details.)
+%\end{enumerate}
+
+\item In the lecture, I discussed kernel machines in the context of linear regression.  Here, you will develop the same ideas in the context of logistic regression.
+\begin{enumerate}
+\item Suppose that we define features through the mapping $\phi(x) : \mathbb{R}^n \to \mathbb{R}^m$ and that we assume the logistic regression model (see homeworks $4$ and $7$),
+\begin{equation} \label{mP}
+P(y = 1 \ | \ w, \phi(x)) = \frac{1}{1 + \exp[-w^T \phi(x)]}.
+\end{equation}
+What is the dimension of $w$ in this model?  Show that the log-likelihood under this model is given by,
+\begin{equation}  \label{mL}
+\log L(w) = \sum_{i=1}^N (1-y_i)(-w^T\phi(x^{(i)})) - \log(1 + \exp(-w^T\phi(x^{(i)})). 
+\end{equation}
+\item Let $B$ be the model matrix for the features of the sampled data, i.e. the $i$th row of $B$ is $\phi(x^{(i)})^T$.  
+\begin{enumerate}
+\item Show that  the $w$ that maximizes the log-likelihood, $w^*$, is in the span of the $\phi(x^{(i)})$ for $i=1,2,\dots,N$ (where $N$ is the number of samples), and that we can therefore express $w^*$ as $w^* = B^Ta^*$ for some $a^* \in \mathbb{R}^N$.
+\item Show that we can solve for $a^*$ by solving the optimization
+\begin{equation}  \label{kL}
+\max_{a \in \mathbb{R}^N}  \sum_{i=1}^N (1-y_i)(-a^T k^{(i)}) - \log(1 + \exp(-a^T k^{(i)}))
+\end{equation}
+where $K$ is a $N \times N$ kernel matrix defined by $K_{j \ell} = \phi(x^{(j)}) \cdot \phi(x^{(\ell)})$ and $k^{(i)}$ is the $i$th column of $K$.
+\item Suppose we have fitted our model by finding $a^*$ and are given an $x \in \mathbb{R}^n$.  Show that under our fitted model,
+\begin{equation} \label{kP}
+P(y = 1 \ | \ a^*, \phi(x)) = \frac{1}{1 + \exp[-(a^*)^T \tilde{k})]}.
+\end{equation}
+where $\tilde{k}$ is a $N$-dimensional vector with $\tilde{k}_i = \phi(x^{(i)})^T \phi(x)$.  
+\end{enumerate}
+\item Part (b) shows that we can replace (\ref{mP}) and (\ref{mL}) by (\ref{kP}) and (\ref{kL}).  Under what circumstances would this replacement be advantageous?
+\item Consider now a penalized logistic regression in which we fit the model (\ref{mP}) by maximizing the following penalized log-likelihood for some $\lambda > 0$.
+\begin{equation}  \label{mpenalty}
+\log L(w) = \sum_{i=1}^N (1-y_i)(-w^T\phi(x^{(i)})) - \log(1 + \exp(-w^T\phi(x^{(i)})) - \lambda \|w\|^2.
+\end{equation}
+\begin{enumerate}
+\item Show that this function is concave.  (You may use results from hw $7$.)
+\item Show that the penalized form of (\ref{kL}) is given by
+\begin{equation} \label{kpenalty}
+ \sum_{i=1}^N (1-y_i)(-a^T k^{(i)}) - \log(1 + \exp(-a^T k^{(i)})) - \lambda a^T K a.
+\end{equation}
+\end{enumerate}
+\end{enumerate}
+
+\item Consider the dataset from homework $13$, \verb+nn.txt+.   In this problem we will fit the data using a kernel machine, as opposed to the neural net of homework $13$.  Recall that the data is composed of samples $x^{(i)} \in \mathbb{R}^2$ and a response $y \in \{0,1\}$.  
+\begin{enumerate}
+\item For $x \in \mathbb{R}^2$, define 
+\begin{equation}
+\phi(x) = (1, \sqrt{2} x_1, \sqrt{2} x_2, x_1^2, \sqrt{2}x_1x_2, x_2^2).
+\end{equation}
+$\phi(x)$ contains all monomials of degree less than or equal $2$ formed by the two coordinates of $x$.  Show that if  $x,x' \in \mathbb{R}^2$ then,
+\begin{equation}
+\phi(x) \cdot \phi(x') = (1 + x \cdot x')^{2}.
+\end{equation}
+\item Consider the kernel $K(x,x') =  (1 + x \cdot x')^{3}$.  What are the feature vectors for this kernel?
+\item Using the feature vector from part (a), fit the penalized logistic model (\ref{mpenalty}) for different $\lambda$ using a Newton's method approach.  However, don't fit the model by directly optimizing $w$, instead use (\ref{kpenalty}) and compute the optimal $a$.  To make the optimization a bit easier, base your fit on $500$ of the samples.   (In this toy model, the dimension of $w$ is only $6$, while the dimension of $a$ will be $N$, the number of samples, which we will set to $500$.   In this context we would optimize for $w$, but here I want you to go through the process of fitting for $a$ in a setting where you can visualize the fit.  If $x \in \mathbb{R}^n$ for $n \gg 2$, then the dimension of $w$ would exceed that of $a$.)  
+\item As in part (g) of homework $13$, pick a cutoff $p$ and visualize the corresponding classifiers for the different $\lambda$.   Use (\ref{kP}) to make predictions.  At no point should you compute $w$.  Given that the features are quadratic functions of $x$, explain the shape of the region for which your classifier predicts $y=1$.
+\item What do you think will happen if you use the kernel $K(x,x') =  (1 + x \cdot x')^{3}$?  Don't actually do the fitting, just discuss how this kernel might improve on the results in (d).
+\end{enumerate}
+
+\end{enumerate}
+\end{document}
+
+
+
+
